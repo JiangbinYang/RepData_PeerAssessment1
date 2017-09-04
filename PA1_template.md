@@ -1,28 +1,10 @@
----
-title: "Course5 Reproducible Research Project1"
-author: "Jiangbin Yang"
-date: "September 2, 2017"
-output: 
-  html_document: 
-    keep_md: yes
----
+# Course5 Reproducible Research Project1
+Jiangbin Yang  
+September 2, 2017  
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-```{r instruction, echo=FALSE}
-# To retain the markdown (.md) files and associated graphics,
-# first must configure knitr output options:
-# RStudio/File/New File/R Markdown -> Knitr Editor -> Options Icon 
-# -> Output Options -> Advanced -> Keep markdown source file
-#
-# After configuration, setwd() to dir of .Rmd file, and click on Knit to run
-# or run the .Rmd file from the R console: 
-#library(knitr)
-#setwd("C:/Users/Yang/REPO/RepData_PeerAssessment1")
-#rmarkdown::render("PA1_template.Rmd")
-```
+
+
 
 This project makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
@@ -35,7 +17,8 @@ The variables included in this dataset are:
 ## Loading and preprocessing the data
 
 Before loading the data, some preparation work:
-```{r preamble}
+
+```r
 library(ggplot2)
 ```
 
@@ -45,7 +28,8 @@ Now load and pre-process the data:
 1. Load the data using read.csv()
 2. Process and transform the data into a format suitable for the analysis
 
-```{r load_data}
+
+```r
 if(!file.exists("./activity.csv")) {
   weblink <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
   download.file(weblink, "repdata_data_activity.zip")
@@ -70,11 +54,28 @@ The code in this section performs:
 2. Make a histogram of the total number of steps taken each day
 3. Calculate and report the mean and median of the total number of steps taken per day
 
-```{r daily_total}
+
+```r
 actDaily <- aggregate(steps ~ date, data=activityDF, sum)
 qplot(steps, data = actDaily, bins = 30)
+```
+
+![](PA1_template_files/figure-html/daily_total-1.png)<!-- -->
+
+```r
 mean(actDaily$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(actDaily$steps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
@@ -84,14 +85,24 @@ The code in this section performs:
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 2. Calculate which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-```{r interval_pattern}
+
+```r
 actInterval <- aggregate(steps ~ interval, data = activityDF, mean)
 qplot(interval, steps, data = actInterval, geom = "line")
+```
+
+![](PA1_template_files/figure-html/interval_pattern-1.png)<!-- -->
+
+```r
 maxInterval <- actInterval$interval[which.max(actInterval$steps)]
 maxInterval
 ```
 
-The 5-minute interval of `r maxInterval`, on average across all the days in the dataset, contains the maximum number of steps. 
+```
+## [1] 835
+```
+
+The 5-minute interval of 835, on average across all the days in the dataset, contains the maximum number of steps. 
 
 ## Imputing missing values
 
@@ -105,18 +116,36 @@ The code in this section performs:
 4. Make a histogram of the total number of steps taken each day and 
 5. Calculate and report the mean and median total number of steps taken per day. 
 
-```{r impute}
+
+```r
 # total number of records with missing values:
 sum(rowSums(is.na(activityDF)) > 0)
+```
+
+```
+## [1] 2304
+```
+
+```r
 # total number of missing values of steps:
 sum(is.na(activityDF$steps))
+```
 
+```
+## [1] 2304
+```
+
+```r
 # exam the 5-minute interval mean steps pattern between weekdays and weekends:
 actInterval2 <- aggregate(steps ~ weekdayInd + interval, data = activityDF, mean)
 names(actInterval2)[3] <- "meanSteps"
 qplot(interval, meanSteps, data = actInterval2, geom = "line", 
       ylab = "Mean Steps", facets = weekdayInd ~ .)
+```
 
+![](PA1_template_files/figure-html/impute-1.png)<!-- -->
+
+```r
 # impute using mean steps value per 5-minute interval and per weekday or weekend: 
 actImpute <- merge(activityDF, actInterval2, by = c("weekdayInd", "interval"))
 actImpute <- transform(actImpute, imputedSteps = ifelse(is.na(steps), meanSteps, steps))
@@ -126,8 +155,24 @@ rm(actImpute)
 
 actImpDaily <- aggregate(imputedSteps ~ date, data = actImputed, sum)
 qplot(imputedSteps, data = actImpDaily, bins = 30)
+```
+
+![](PA1_template_files/figure-html/impute-2.png)<!-- -->
+
+```r
 mean(actImpDaily$imputedSteps)
+```
+
+```
+## [1] 10762.05
+```
+
+```r
 median(actImpDaily$imputedSteps)
+```
+
+```
+## [1] 10571
 ```
 
 The impact of imputing missing data: The mean and median total numbers of steps are slightly smaller than the estimates from the first part of the analysis without imputattion. This is probably because the missing values were mostly for the 5-minute intervals where the activity was low (i.e., the steps values were small.)
@@ -140,11 +185,14 @@ A new factor variable, weekdayInd, with two levels - "weekday" and "weekend" ind
 
 The following code makes a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
-```{r weekday_weekend}
+
+```r
 actImpInterval2 <- aggregate(imputedSteps ~ weekdayInd + interval, data = actImputed, mean)
 qplot(interval, imputedSteps, data = actImpInterval2, geom = "line", 
       ylab = "Mean Imputed Steps", facets = weekdayInd ~ .)
 ```
+
+![](PA1_template_files/figure-html/weekday_weekend-1.png)<!-- -->
 
 Note that this panel plot appears the same as the plot using the un-imputed raw data. This is true, because the missing steps values have been imputed by the same mean values.
 
